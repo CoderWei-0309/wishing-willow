@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>许愿柳 · 扭曲契约</title>
-    <!-- 引入衬线字体 Cinzel -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>许愿柳 · 复古魔法杂货铺</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Fredoka+One&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ---------- 全局重置与暗黑基调 ---------- */
+        /* ---------- 全局重置 ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -15,149 +14,168 @@
         }
 
         body {
-            background: #0a0a0f;
-            color: #c9c0b0;
-            font-family: 'Cinzel', 'Times New Roman', serif;
+            background: #1a1410;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow-x: hidden;
+            padding: 20px;
+            font-family: 'Quicksand', sans-serif;
             position: relative;
+            overflow-x: hidden;
         }
 
-        /* 动态粒子烟雾背景 (Canvas将覆盖于此) */
-        #bg-canvas {
+        /* ---------- 背景：暖调暗光影 + 木纹桌面 ---------- */
+        .scene {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 0;
+            background: radial-gradient(ellipse at 50% 60%, #4a3520 0%, #1a1410 60%, #0d0a08 100%);
+        }
+
+        /* 木纹桌面（下半部分） */
+        .table {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 45%;
+            background: linear-gradient(180deg, #3d2b1a 0%, #2a1c10 30%, #1f140c 100%);
+            box-shadow: 0 -20px 80px rgba(0, 0, 0, 0.8);
+        }
+        /* 木纹纹理（纯CSS模拟） */
+        .table::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg,
+                    transparent 0px, transparent 2px,
+                    rgba(80, 50, 30, 0.15) 2px, rgba(80, 50, 30, 0.15) 3px,
+                    transparent 3px, transparent 8px,
+                    rgba(60, 40, 25, 0.08) 8px, rgba(60, 40, 25, 0.08) 9px
+                ),
+                repeating-linear-gradient(0deg,
+                    transparent 0px, transparent 30px,
+                    rgba(100, 70, 40, 0.05) 30px, rgba(100, 70, 40, 0.05) 31px
+                );
+            pointer-events: none;
+        }
+        /* 桌面磨损做旧光效 */
+        .table::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 50% 0%, rgba(180, 140, 100, 0.08) 0%, transparent 70%);
             pointer-events: none;
         }
 
-        /* 暗红月亮 */
-        .moon {
-            position: fixed;
-            top: 40px;
-            left: 40px;
-            width: 120px;
-            height: 120px;
-            background: radial-gradient(circle at 30% 30%, #4a1a1a, #2a0a0a);
-            border-radius: 50%;
-            box-shadow: 0 0 80px rgba(139, 0, 0, 0.6);
+        /* 聚光灯效果（暖黄） */
+        .spotlight {
+            position: absolute;
+            top: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 80%;
+            background: radial-gradient(ellipse at 50% 30%, rgba(255, 200, 120, 0.15) 0%, transparent 70%);
+            pointer-events: none;
             z-index: 1;
-            transition: box-shadow 0.5s;
-        }
-        .moon.glow {
-            box-shadow: 0 0 150px rgba(139, 0, 0, 1);
         }
 
-        /* ---------- 主容器 ---------- */
+        /* ---------- 主容器（卡片浮在场景上） ---------- */
         .container {
             position: relative;
             z-index: 2;
-            width: 90%;
-            max-width: 1100px;
+            width: 100%;
+            max-width: 880px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px 20px;
+            padding: 20px 20px 40px;
+            /* 微弱的玻璃质感，但保留暗调 */
+            background: rgba(20, 15, 10, 0.3);
+            border-radius: 40px;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(200, 160, 100, 0.08);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
         }
 
-        /* 标题 */
-        h1 {
+        /* ---------- 顶部标题：许愿柳（米白色复古衬线） ---------- */
+        .main-title {
+            font-family: 'Playfair Display', 'Times New Roman', serif;
             font-weight: 900;
-            font-size: 2.4rem;
-            letter-spacing: 8px;
-            color: #b8860b;
-            text-shadow: 0 0 20px rgba(184, 134, 11, 0.3);
-            margin-bottom: 10px;
-            border-bottom: 1px solid #3e2723;
-            padding-bottom: 10px;
-            width: 100%;
+            font-size: 4.2rem;
+            color: #f5ede4;
+            text-shadow:
+                0 0 30px rgba(200, 160, 100, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.6),
+                0 2px 4px rgba(0, 0, 0, 0.8);
+            letter-spacing: 12px;
+            margin-bottom: 6px;
             text-align: center;
+            line-height: 1.1;
         }
-        .sub {
-            font-size: 0.8rem;
-            color: #5a4a3a;
-            letter-spacing: 4px;
-            margin-bottom: 30px;
+        .main-title small {
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            opacity: 0.6;
+            display: block;
+            font-weight: 400;
         }
 
-        /* ---------- 柳树区域 ---------- */
-        .willow-area {
+        /* ---------- SVG 展示区（柳树 + 包装盒） ---------- */
+        .display-area {
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            min-height: 320px;
-            margin-bottom: 20px;
+            margin: 8px 0 10px;
             position: relative;
+            min-height: 340px;
         }
 
-        /* SVG柳树 */
         #willow-svg {
-            width: 280px;
-            height: 320px;
-            filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.8));
+            width: 400px;
+            height: 380px;
+            filter: drop-shadow(0 10px 40px rgba(0, 0, 0, 0.7));
             transition: transform 0.1s;
         }
-        /* 摇曳动画 */
         .sway {
-            animation: swayAnim 4s ease-in-out infinite alternate;
+            animation: swayAnim 6s ease-in-out infinite alternate;
         }
         @keyframes swayAnim {
-            0% { transform: rotate(-1deg); }
-            100% { transform: rotate(1deg); }
+            0% { transform: rotate(-0.8deg) translateY(0); }
+            100% { transform: rotate(0.8deg) translateY(-3px); }
         }
+
         /* 折断震动 */
         .shake {
-            animation: shakeAnim 0.3s ease-in-out 3;
+            animation: shakeAnim 0.25s ease-in-out 3;
         }
         @keyframes shakeAnim {
             0%, 100% { transform: rotate(0deg) translateX(0); }
-            25% { transform: rotate(3deg) translateX(-8px); }
-            75% { transform: rotate(-3deg) translateX(8px); }
-        }
-        /* 枝条断裂隐藏 */
-        .branch-break {
-            transition: all 0.8s ease;
-        }
-        .branch-break.broken {
-            stroke-dasharray: 1000;
-            stroke-dashoffset: 1000;
-            opacity: 0;
+            25% { transform: rotate(2deg) translateX(-6px); }
+            75% { transform: rotate(-2deg) translateX(6px); }
         }
 
-        /* 碎片粒子容器 */
-        .particle-container {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            pointer-events: none;
-        }
-        .particle {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #8b0000;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #b8860b;
-            opacity: 0;
-        }
-
-        /* ---------- 交互区 (输入+按钮) ---------- */
+        /* ---------- 交互区 ---------- */
         .interact-area {
             width: 100%;
-            max-width: 600px;
+            max-width: 520px;
             display: flex;
             flex-direction: column;
-            gap: 18px;
-            margin: 10px 0 30px;
+            gap: 14px;
+            margin: 8px 0 18px;
+            padding: 0 10px;
         }
 
         .input-wrapper {
@@ -165,81 +183,92 @@
         }
         #wish-input {
             width: 100%;
-            padding: 18px 24px;
-            background: rgba(20, 15, 12, 0.9);
-            border: 1px solid #3e2723;
-            border-radius: 4px;
-            color: #e6dcc8;
-            font-family: 'Cinzel', serif;
+            padding: 16px 22px;
+            background: rgba(30, 22, 16, 0.85);
+            border: 1px solid #5a4030;
+            border-radius: 30px;
+            color: #e8ddd0;
+            font-family: 'Quicksand', sans-serif;
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            transition: all 0.3s;
             letter-spacing: 1px;
+            backdrop-filter: blur(4px);
         }
         #wish-input::placeholder {
-            color: #4a3a2a;
+            color: #6a5a4a;
             font-style: italic;
+            font-weight: 300;
         }
         #wish-input:focus {
-            border-color: #b8860b;
-            box-shadow: 0 0 30px rgba(184, 134, 11, 0.15);
+            border-color: #c9a87a;
+            box-shadow: 0 0 40px rgba(200, 160, 100, 0.12);
+            background: rgba(40, 30, 20, 0.9);
         }
 
+        .btn-row {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
         #submit-btn {
-            padding: 16px 30px;
-            background: transparent;
-            border: 2px solid #8b0000;
-            color: #c9c0b0;
-            font-family: 'Cinzel', serif;
-            font-weight: 700;
-            font-size: 1.3rem;
-            letter-spacing: 6px;
+            flex: 1;
+            padding: 14px 20px;
+            background: linear-gradient(145deg, #5a3a28, #3a2518);
+            border: 1px solid #8a6a4a;
+            color: #f0e8d8;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
             cursor: pointer;
+            border-radius: 40px;
             transition: all 0.3s ease;
-            border-radius: 4px;
-            text-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
         #submit-btn:hover:not(:disabled) {
-            background: #8b0000;
-            color: #0a0a0f;
-            box-shadow: 0 0 40px rgba(139, 0, 0, 0.6);
-            border-color: #b8860b;
+            background: linear-gradient(145deg, #7a4a30, #4a2a1a);
+            border-color: #c9a87a;
+            box-shadow: 0 0 40px rgba(200, 160, 100, 0.15), 0 4px 20px rgba(0, 0, 0, 0.4);
+            transform: scale(1.02);
         }
         #submit-btn:disabled {
             opacity: 0.4;
             cursor: not-allowed;
-            border-color: #3a2a1a;
-            filter: grayscale(0.8);
+            filter: grayscale(0.6);
         }
+
         .loading-text {
-            font-size: 0.9rem;
-            color: #8b0000;
-            letter-spacing: 4px;
-            min-height: 30px;
+            font-size: 0.85rem;
+            color: #b09878;
+            letter-spacing: 3px;
+            min-height: 28px;
             text-align: center;
-            animation: pulse 1.2s infinite;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 400;
         }
-        @keyframes pulse {
+        .loading-text.active {
+            animation: pulseTxt 1.2s ease-in-out infinite;
+        }
+        @keyframes pulseTxt {
             0%, 100% { opacity: 0.4; }
             50% { opacity: 1; }
         }
 
-        /* ---------- 代价契约展示区 (双栏) ---------- */
+        /* ---------- 代价契约展示区 ---------- */
         .contract-area {
             width: 100%;
-            max-width: 900px;
-            margin-top: 20px;
-            display: none; /* 默认隐藏，收到数据后显示 */
+            max-width: 780px;
+            margin-top: 16px;
+            display: none;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            border: 1px solid #b8860b;
-            background: rgba(20, 15, 10, 0.85);
-            padding: 25px 25px;
-            border-radius: 8px;
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(184, 134, 11, 0.05);
-            backdrop-filter: blur(4px);
+            gap: 18px;
+            padding: 22px 28px;
+            background: rgba(25, 18, 12, 0.85);
+            border: 1px solid #6a5038;
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
         }
         .contract-area.show {
             display: grid;
@@ -248,247 +277,333 @@
         .contract-col {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
         .contract-col .label {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             letter-spacing: 4px;
-            color: #b8860b;
-            border-bottom: 1px solid #3e2723;
+            color: #b09878;
+            border-bottom: 1px solid #3a2a1a;
             padding-bottom: 6px;
             text-transform: uppercase;
+            font-weight: 600;
         }
         .contract-col .content {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             line-height: 1.7;
-            color: #e6dcc8;
-            min-height: 80px;
-            word-break: break-word;
+            color: #e8ddd0;
+            min-height: 60px;
+            font-weight: 300;
         }
-        /* 打字机光标 */
-        .typewriter-cursor::after {
-            content: "|";
-            animation: blink 0.8s step-end infinite;
-            color: #8b0000;
+        .contract-col .content.wish-text {
+            color: #d4c8b8;
         }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
+        .contract-col .content.price-text {
+            color: #f0ddd0;
         }
 
         .contract-footer {
             grid-column: 1 / -1;
             text-align: right;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: #5a4a3a;
             letter-spacing: 2px;
-            border-top: 1px solid #2a1a1a;
-            padding-top: 12px;
-            margin-top: 6px;
+            border-top: 1px solid #2a1a10;
+            padding-top: 10px;
+            margin-top: 4px;
             font-style: italic;
         }
 
         /* ---------- 响应式 ---------- */
         @media (max-width: 700px) {
-            h1 { font-size: 1.6rem; }
-            .contract-area {
-                grid-template-columns: 1fr;
-                gap: 15px;
+            .main-title {
+                font-size: 2.8rem;
+                letter-spacing: 6px;
             }
-            .moon {
-                width: 70px;
-                height: 70px;
-                top: 15px;
-                left: 15px;
+            .main-title small {
+                font-size: 0.9rem;
             }
             #willow-svg {
-                width: 200px;
-                height: 240px;
+                width: 300px;
+                height: 300px;
             }
-            .contract-col .content {
-                font-size: 0.85rem;
+            .contract-area {
+                grid-template-columns: 1fr;
+                padding: 18px 16px;
+                gap: 12px;
+            }
+            .btn-row {
+                flex-direction: column;
+            }
+            #submit-btn {
+                width: 100%;
+            }
+        }
+        @media (max-width: 450px) {
+            .main-title {
+                font-size: 2.0rem;
+                letter-spacing: 4px;
+            }
+            #willow-svg {
+                width: 240px;
+                height: 250px;
+            }
+            .container {
+                padding: 12px 10px 30px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- 背景粒子画布 -->
-    <canvas id="bg-canvas"></canvas>
+    <!-- ===== 场景背景 ===== -->
+    <div class="scene">
+        <div class="table"></div>
+        <div class="spotlight"></div>
+    </div>
 
-    <!-- 暗红月亮 -->
-    <div class="moon" id="moon"></div>
-
-    <!-- 主容器 -->
+    <!-- ===== 主容器 ===== -->
     <div class="container">
-        <h1>✦ 许愿柳 ✦</h1>
-        <div class="sub">— 愿望即代价 —</div>
 
-        <!-- 柳树 + 粒子容器 -->
-        <div class="willow-area">
-            <svg id="willow-svg" class="sway" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
-                <!-- 树干 -->
-                <path d="M150 320 Q140 250 145 200 Q148 160 150 140" stroke="#3e2723" stroke-width="24" fill="none" stroke-linecap="round"/>
-                <path d="M150 320 Q160 250 155 200 Q152 160 150 140" stroke="#2a1a12" stroke-width="14" fill="none" stroke-linecap="round"/>
-                <!-- 主要枝条（要被折断的） -->
-                <g id="main-branch">
-                    <path d="M150 150 Q120 120 90 100 Q60 80 30 70" stroke="#4a3a2a" stroke-width="8" fill="none" stroke-linecap="round"/>
-                    <!-- 小枝条 -->
-                    <path d="M120 120 Q100 140 80 160" stroke="#4a3a2a" stroke-width="4" fill="none" stroke-linecap="round"/>
-                    <path d="M90 100 Q70 90 50 110" stroke="#4a3a2a" stroke-width="3" fill="none" stroke-linecap="round"/>
-                </g>
-                <!-- 其他枝条 -->
-                <path d="M150 150 Q180 110 210 100 Q240 90 270 95" stroke="#4a3a2a" stroke-width="6" fill="none" stroke-linecap="round"/>
-                <path d="M180 110 Q200 130 220 150" stroke="#4a3a2a" stroke-width="3" fill="none" stroke-linecap="round"/>
-                <path d="M150 160 Q130 180 100 190" stroke="#4a3a2a" stroke-width="5" fill="none" stroke-linecap="round"/>
-                <path d="M150 170 Q180 190 210 200" stroke="#4a3a2a" stroke-width="4" fill="none" stroke-linecap="round"/>
-                <!-- 柳条垂丝 -->
-                <path d="M30 70 Q20 100 10 130" stroke="#2a3a1a" stroke-width="2" fill="none" opacity="0.6"/>
-                <path d="M50 110 Q40 140 30 170" stroke="#2a3a1a" stroke-width="2" fill="none" opacity="0.6"/>
-                <path d="M270 95 Q280 130 290 160" stroke="#2a3a1a" stroke-width="2" fill="none" opacity="0.6"/>
-                <path d="M220 150 Q230 180 240 210" stroke="#2a3a1a" stroke-width="2" fill="none" opacity="0.6"/>
-            </svg>
-            <div class="particle-container" id="particle-container"></div>
+        <!-- 顶部标题 -->
+        <div class="main-title">
+            许愿柳
+            <small>✦ 愿望即代价 ✦</small>
         </div>
 
-        <!-- 交互区 -->
+        <!-- ===== 展示区：柳树 + 包装盒 (SVG) ===== -->
+        <div class="display-area">
+            <svg id="willow-svg" class="sway" viewBox="0 0 500 460" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- 木纹渐变 -->
+                    <linearGradient id="woodGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#1a0e08"/>
+                        <stop offset="30%" stop-color="#2a1a10"/>
+                        <stop offset="60%" stop-color="#1f120a"/>
+                        <stop offset="100%" stop-color="#140a06"/>
+                    </linearGradient>
+                    <linearGradient id="woodGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#2a1a10"/>
+                        <stop offset="100%" stop-color="#0d0805"/>
+                    </linearGradient>
+                    <!-- 包装盒米白底色 -->
+                    <linearGradient id="boxFront" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#f5ede4"/>
+                        <stop offset="100%" stop-color="#e0d5c8"/>
+                    </linearGradient>
+                    <linearGradient id="boxSide" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#d5cabc"/>
+                        <stop offset="100%" stop-color="#c0b5a8"/>
+                    </linearGradient>
+                    <!-- 红色装饰渐变 -->
+                    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#c0392b"/>
+                        <stop offset="100%" stop-color="#a93226"/>
+                    </linearGradient>
+                    <!-- 聚光晕 -->
+                    <radialGradient id="glowSpot" cx="50%" cy="20%" r="60%">
+                        <stop offset="0%" stop-color="rgba(255,200,120,0.15)"/>
+                        <stop offset="100%" stop-color="rgba(255,200,120,0)"/>
+                    </radialGradient>
+                </defs>
+
+                <!-- 桌面聚光晕（在SVG底部） -->
+                <ellipse cx="250" cy="420" rx="200" ry="30" fill="url(#glowSpot)" opacity="0.4"/>
+
+                <!-- ========== 三棱柱包装盒 ========== -->
+                <!-- 左侧面（三角形侧面） -->
+                <polygon points="150,240 200,180 200,320 150,380" fill="url(#boxSide)" stroke="#a09080" stroke-width="0.5"/>
+                <!-- 左侧面文字：ONE WISH WILLOW（竖排） -->
+                <text x="168" y="215" font-family="'Fredoka One', cursive" font-size="18" fill="#a93226" font-weight="700" letter-spacing="6" transform="rotate(90, 168, 215)" text-anchor="middle">ONE WISH WILLOW</text>
+
+                <!-- 正面（朝向观众的大面） -->
+                <polygon points="150,240 350,220 350,360 150,380" fill="url(#boxFront)" stroke="#b0a090" stroke-width="0.5"/>
+
+                <!-- 正面：上下弧形装饰条 -->
+                <path d="M160,248 Q250,235 340,228" stroke="#a93226" stroke-width="3" fill="none" opacity="0.6"/>
+                <path d="M160,370 Q250,358 340,350" stroke="#a93226" stroke-width="3" fill="none" opacity="0.6"/>
+
+                <!-- 左上角星星 -->
+                <text x="175" y="268" font-size="16" fill="#a93226">★</text>
+
+                <!-- 正面：ONE WISH WILLOW（弧形排列） -->
+                <path id="arcPath" d="M190,260 Q250,235 320,250" fill="none"/>
+                <text font-family="'Fredoka One', cursive" font-size="22" fill="#a93226" font-weight="700" letter-spacing="2">
+                    <textPath href="#arcPath" startOffset="50%" text-anchor="middle">ONE WISH WILLOW</textPath>
+                </text>
+
+                <!-- 断裂线条 + CRACK -->
+                <line x1="195" y1="290" x2="245" y2="285" stroke="#a93226" stroke-width="2.5" stroke-dasharray="6,4"/>
+                <text x="198" y="305" font-family="'Fredoka One', cursive" font-size="14" fill="#a93226" font-weight="700">CRACK</text>
+
+                <!-- 两个复古卡通头像（简化为风格化圆形人脸） -->
+                <!-- 男孩（左） -->
+                <circle cx="230" cy="310" r="18" fill="none" stroke="#a93226" stroke-width="2"/>
+                <circle cx="230" cy="310" r="14" fill="none" stroke="#a93226" stroke-width="1.5"/>
+                <circle cx="225" cy="306" r="2.5" fill="#a93226"/> <!-- 眼睛 -->
+                <circle cx="235" cy="306" r="2.5" fill="#a93226"/> <!-- 眼睛 -->
+                <path d="M225,316 Q230,321 235,316" stroke="#a93226" stroke-width="1.5" fill="none"/> <!-- 微笑 -->
+                <!-- 男孩头发 -->
+                <path d="M218,302 Q225,294 235,296 Q240,294 242,302" stroke="#a93226" stroke-width="1.5" fill="none"/>
+
+                <!-- 女孩（右） -->
+                <circle cx="280" cy="310" r="18" fill="none" stroke="#a93226" stroke-width="2"/>
+                <circle cx="280" cy="310" r="14" fill="none" stroke="#a93226" stroke-width="1.5"/>
+                <circle cx="275" cy="306" r="2.5" fill="#a93226"/> <!-- 眼睛 -->
+                <circle cx="285" cy="306" r="2.5" fill="#a93226"/> <!-- 眼睛 -->
+                <path d="M274,317 Q280,323 286,317" stroke="#a93226" stroke-width="1.5" fill="none"/> <!-- 微笑 -->
+                <!-- 女孩头发（卷发） -->
+                <circle cx="272" cy="296" r="6" fill="none" stroke="#a93226" stroke-width="1.5"/>
+                <circle cx="280" cy="294" r="6" fill="none" stroke="#a93226" stroke-width="1.5"/>
+                <circle cx="288" cy="296" r="6" fill="none" stroke="#a93226" stroke-width="1.5"/>
+
+                <!-- 周围星星装饰 -->
+                <text x="210" y="275" font-size="10" fill="#a93226">✦</text>
+                <text x="265" y="278" font-size="8" fill="#a93226">✦</text>
+                <text x="300" y="290" font-size="10" fill="#a93226">✦</text>
+                <text x="245" y="330" font-size="7" fill="#a93226">✦</text>
+                <text x="205" y="340" font-size="8" fill="#a93226">✦</text>
+                <text x="310" y="330" font-size="9" fill="#a93226">✦</text>
+
+                <!-- 右上角：AMAZE YOUR FRIENDS! -->
+                <rect x="295" y="238" width="48" height="20" rx="4" fill="#a93226" opacity="0.9"/>
+                <text x="319" y="253" font-family="'Fredoka One', cursive" font-size="8" fill="white" font-weight="700" text-anchor="middle">AMAZE YOUR</text>
+                <text x="319" y="262" font-family="'Fredoka One', cursive" font-size="6" fill="white" font-weight="700" text-anchor="middle">FRIENDS!</text>
+
+                <!-- 右下角：You only get ONE WISH -->
+                <rect x="225" y="350" width="45" height="18" rx="3" fill="#a93226" transform="rotate(-8, 248, 359)"/>
+                <text x="248" y="363" font-family="'Fredoka One', cursive" font-size="6.5" fill="white" font-weight="700" text-anchor="middle" transform="rotate(-8, 248, 359)">You only get</text>
+                <text x="248" y="371" font-family="'Fredoka One', cursive" font-size="6.5" fill="white" font-weight="700" text-anchor="middle" transform="rotate(-8, 248, 359)">ONE WISH</text>
+
+                <!-- ========== 许愿柳本体（黑色枯木，横放在包装盒前方） ========== -->
+                <!-- 主杆（长条形，横向） -->
+                <path d="M80,390 Q120,382 160,385 Q200,388 250,384 Q300,380 340,386 Q380,392 420,388" 
+                      stroke="url(#woodGrad2)" stroke-width="22" fill="none" stroke-linecap="round"/>
+                <!-- 高光纹理 -->
+                <path d="M80,390 Q120,382 160,385 Q200,388 250,384 Q300,380 340,386 Q380,392 420,388" 
+                      stroke="rgba(60,40,30,0.4)" stroke-width="4" fill="none" stroke-linecap="round" transform="translate(0,-4)"/>
+                <!-- 木质纹理线 -->
+                <path d="M100,386 Q150,380 200,384 Q260,388 320,382 Q360,380 390,386" 
+                      stroke="rgba(40,25,15,0.3)" stroke-width="1.5" fill="none"/>
+
+                <!-- 左端分叉枝丫 -->
+                <path d="M80,390 Q70,375 55,365" stroke="#1a0e08" stroke-width="8" fill="none" stroke-linecap="round"/>
+                <path d="M80,390 Q65,385 50,390" stroke="#1a0e08" stroke-width="6" fill="none" stroke-linecap="round"/>
+                <path d="M70,375 Q60,360 50,355" stroke="#1a0e08" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <path d="M55,365 Q45,358 38,360" stroke="#1a0e08" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+                <!-- 右端分叉枝丫 -->
+                <path d="M420,388 Q435,375 450,368" stroke="#1a0e08" stroke-width="8" fill="none" stroke-linecap="round"/>
+                <path d="M420,388 Q435,385 450,392" stroke="#1a0e08" stroke-width="6" fill="none" stroke-linecap="round"/>
+                <path d="M435,375 Q445,362 455,358" stroke="#1a0e08" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <path d="M450,368 Q460,365 468,368" stroke="#1a0e08" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+                <!-- ===== 椭圆形镂空孔洞（沿杆身排列） ===== -->
+                <ellipse cx="120" cy="388" rx="10" ry="6" fill="#0d0805" stroke="#2a1a10" stroke-width="1"/>
+                <ellipse cx="160" cy="385" rx="8" ry="5" fill="#0d0805" stroke="#2a1a10" stroke-width="1"/>
+                <ellipse cx="200" cy="387" rx="12" ry="7" fill="#0d0805" stroke="#2a1a10" stroke-width="1"/>
+                <ellipse cx="250" cy="384" rx="9" ry="6" fill="#0d0805" stroke="#2a1a10" stroke-width="1"/>
+                <ellipse cx="295" cy="382" rx="11" ry="6" fill="#0d0805" stroke="#2a1a10" stroke-width="1"/>
+                <ellipse cx="340" cy="386" rx="8" ry="5" fill="#0d0805" stroke="#2a1a10" stroke-width="1"/>
+                <ellipse cx="380" cy="389" rx="10" ry="6" fill="#0d0805" stroke="#2a1a10" stroke-width="1"/>
+
+                <!-- 孔洞内壁的高光 -->
+                <ellipse cx="120" cy="386" rx="6" ry="3" fill="rgba(60,40,30,0.2)"/>
+                <ellipse cx="200" cy="385" rx="8" ry="4" fill="rgba(60,40,30,0.2)"/>
+                <ellipse cx="295" cy="380" rx="7" ry="3" fill="rgba(60,40,30,0.2)"/>
+
+                <!-- 柳树表面的光影高光 -->
+                <path d="M90,383 Q150,376 250,378 Q350,376 410,382" 
+                      stroke="rgba(180,150,120,0.08)" stroke-width="6" fill="none" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <!-- ===== 交互区 ===== -->
         <div class="interact-area">
             <div class="input-wrapper">
                 <input type="text" id="wish-input" placeholder="在此写下你渴望的..." maxlength="200">
             </div>
-            <button id="submit-btn">掰断它</button>
-            <div class="loading-text" id="loading-text"></div>
+            <div class="btn-row">
+                <button id="submit-btn">掰断它</button>
+            </div>
+            <div class="loading-text" id="loading-text">✦ 许下愿望，掰断因果 ✦</div>
         </div>
 
-        <!-- 代价契约展示区 -->
+        <!-- ===== 代价契约展示区 ===== -->
         <div class="contract-area" id="contract-area">
             <div class="contract-col">
                 <div class="label">【许愿原文】</div>
-                <div class="content" id="wish-display"></div>
+                <div class="content wish-text" id="wish-display"></div>
             </div>
             <div class="contract-col">
                 <div class="label">【扭曲的代价】</div>
-                <div class="content" id="price-display"></div>
+                <div class="content price-text" id="price-display"></div>
             </div>
-            <div class="contract-footer">* 愿望已兑现，代价已刻入因果 *</div>
+            <div class="contract-footer">✦ 愿望已兑现，代价已刻入因果 ✦</div>
         </div>
+
     </div>
 
     <script>
-        // ---------- 1. 背景粒子烟雾 ----------
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let width, height, particles = [];
+        // ============================================================
+        //  JS 交互逻辑（与之前保持一致，仅微调样式类）
+        // ============================================================
 
-        function resizeCanvas() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        class Particle {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.size = Math.random() * 3 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.3;
-                this.speedY = (Math.random() - 0.5) * 0.2 - 0.1;
-                this.opacity = Math.random() * 0.3 + 0.05;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                if (this.x < 0 || this.x > width) this.speedX *= -1;
-                if (this.y < 0 || this.y > height) this.speedY *= -1;
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(100, 80, 60, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-
-        for (let i = 0; i < 80; i++) particles.push(new Particle());
-
-        function animateBg() {
-            ctx.clearRect(0, 0, width, height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animateBg);
-        }
-        animateBg();
-
-        // ---------- 2. DOM 引用 ----------
         const willow = document.getElementById('willow-svg');
-        const mainBranch = document.getElementById('main-branch');
         const submitBtn = document.getElementById('submit-btn');
         const wishInput = document.getElementById('wish-input');
         const loadingText = document.getElementById('loading-text');
         const contractArea = document.getElementById('contract-area');
         const wishDisplay = document.getElementById('wish-display');
         const priceDisplay = document.getElementById('price-display');
-        const moon = document.getElementById('moon');
-        const particleContainer = document.getElementById('particle-container');
 
-        // ---------- 3. 辅助函数：生成碎片粒子 ----------
-        function createParticles() {
-            const rect = willow.getBoundingClientRect();
-            const cx = rect.left + rect.width * 0.5;
-            const cy = rect.top + rect.height * 0.3;
-            for (let i = 0; i < 30; i++) {
-                const el = document.createElement('div');
-                el.className = 'particle';
-                const angle = Math.random() * Math.PI * 2;
-                const dist = 60 + Math.random() * 120;
-                const x = cx + Math.cos(angle) * dist - 3;
-                const y = cy + Math.sin(angle) * dist - 3;
-                el.style.left = x + 'px';
-                el.style.top = y + 'px';
-                el.style.width = (4 + Math.random() * 8) + 'px';
-                el.style.height = el.style.width;
-                el.style.background = Math.random() > 0.5 ? '#8b0000' : '#b8860b';
-                el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-                el.style.opacity = '1';
-                el.style.transition = 'all 0.9s ease-out';
-                document.body.appendChild(el);
-                requestAnimationFrame(() => {
-                    el.style.transform = `translate(${(Math.random()-0.5)*200}px, ${(Math.random()-0.5)*200}px) scale(0.1)`;
-                    el.style.opacity = '0';
+        // 折断动画（无粒子特效，改为SVG枝条断裂感）
+        function playBreakAnimation() {
+            return new Promise((resolve) => {
+                willow.classList.remove('sway');
+                willow.classList.add('shake');
+                // 模拟枝条断裂：改变杆身颜色和透明度
+                const paths = willow.querySelectorAll('path');
+                paths.forEach((p, i) => {
+                    if (i % 2 === 0) {
+                        p.style.transition = 'stroke 0.3s, opacity 0.5s';
+                        p.style.stroke = '#4a2a1a';
+                        if (i > 5) {
+                            p.style.opacity = '0.3';
+                        }
+                    }
                 });
-                setTimeout(() => el.remove(), 1000);
-            }
+                setTimeout(() => {
+                    willow.classList.remove('shake');
+                    willow.classList.add('sway');
+                    // 恢复
+                    paths.forEach((p) => {
+                        p.style.transition = 'stroke 0.8s, opacity 0.8s';
+                        p.style.stroke = '';
+                        p.style.opacity = '';
+                    });
+                    resolve();
+                }, 1200);
+            });
         }
 
-        // ---------- 4. 核心交互 ----------
         async function handleMakeWish() {
             const wish = wishInput.value.trim();
             if (!wish) {
                 loadingText.textContent = '✧ 请先写下你的愿望... ✧';
+                loadingText.classList.add('active');
                 return;
             }
 
-            // 禁用
             submitBtn.disabled = true;
             loadingText.textContent = '✦ 交易正在缔结... ✦';
+            loadingText.classList.add('active');
             contractArea.classList.remove('show');
 
             // 播放折断动画
-            willow.classList.remove('sway');
-            willow.classList.add('shake');
-            mainBranch.classList.add('broken');
-            createParticles();
-            moon.classList.add('glow');
-
-            // 等待动画结束 (1.5s)
-            await new Promise(r => setTimeout(r, 1500));
-            willow.classList.remove('shake');
-            willow.classList.add('sway');
-            moon.classList.remove('glow');
+            await playBreakAnimation();
 
             try {
-                // 调用后端API（Vercel Serverless Function）
                 const response = await fetch('/api/make-wish', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -501,28 +616,26 @@
                 }
 
                 const data = await response.json();
-                // 预期返回格式：{ wish: "...", price: "..." }
                 if (!data.wish || !data.price) {
                     throw new Error('返回数据格式异常');
                 }
 
-                // 渲染契约
                 wishDisplay.textContent = data.wish;
                 priceDisplay.textContent = '';
                 contractArea.classList.add('show');
 
-                // 打字机效果逐字显示代价
+                // 打字机效果
                 const text = data.price;
                 let index = 0;
                 const typeInterval = setInterval(() => {
                     if (index < text.length) {
                         priceDisplay.textContent += text.charAt(index);
                         index++;
-                        // 滚动到底部
                         contractArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     } else {
                         clearInterval(typeInterval);
                         loadingText.textContent = '✦ 契约已立 ✦';
+                        loadingText.classList.remove('active');
                         submitBtn.disabled = false;
                     }
                 }, 30);
@@ -530,14 +643,13 @@
             } catch (error) {
                 console.error('请求失败:', error);
                 loadingText.textContent = '✧ 因果中断，请重试 ✧';
+                loadingText.classList.remove('active');
                 submitBtn.disabled = false;
                 contractArea.classList.remove('show');
             }
         }
 
-        // 点击按钮
         submitBtn.addEventListener('click', handleMakeWish);
-        // 回车键
         wishInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -545,8 +657,9 @@
             }
         });
 
-        // 初始化加载提示
-        loadingText.textContent = '✧ 许下愿望，掰断因果 ✧';
+        loadingText.textContent = '✦ 许下愿望，掰断因果 ✦';
+        loadingText.classList.remove('active');
     </script>
+
 </body>
 </html>
