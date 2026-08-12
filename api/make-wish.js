@@ -65,13 +65,13 @@ json
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: 'deepseek-v4-flash',
+                model: 'deepseek-chat',
                 messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: wish }
                 ],
                 temperature: 0.85,
-                max_tokens: 400,
+                max_tokens: 800,
                 // 如果 response_format 报错，先注释掉下面这行试试
                 // response_format: { type: 'json_object' }
             })
