@@ -1,0 +1,111 @@
+// api/make-wish.js (Vercel Serverless Function)
+
+// 你的 DeepSeek API Key 必须设置在 Vercel 环境变量中，名为 DEEPSEEK_API_KEY
+// 如果你用的是其他兼容 OpenAI 格式的接口，可以修改下方的 API_URL
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+
+module.exports = async function handler(req, res) {
+    // 1. 只允许 POST 请求
+    if (req.method !== 'POST') {
+        res.status(405).json({ error: '方法不被允许，请使用 POST' });
+        return;
+    }
+
+    // 2. 从请求体中获取用户的愿望
+    const { wish } = req.body;
+    if (!wish || typeof wish !== 'string' || wish.trim().length === 0) {
+        res.status(400).json({ error: '请提供一个有效的愿望' });
+        return;
+    }
+
+    // 3. 从环境变量读取 API Key (这是安全的，不会暴露给前端)
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+        console.error('环境变量 DEEPSEEK_API_KEY 未设置');
+        res.status(500).json({ error: '服务器配置错误：缺少 API Key' });
+        return;
+    }
+
+    // 4. 构建系统提示词 (System Prompt) —— 这就是你之前准备的“内嵌AI系统提示词”
+    const systemPrompt = `
+你是一棵亘古存在的“因果扭曲柳”。你不实现愿望，你只是**字面解析**愿望，并从物理法则、社会关系、人性弱点或存在主义悖论中，推导出一个**绝对实现但附带不可逆恐怖代价**的结局。
+
+**核心创作法则（细思极恐）：**
+1. **绝对字面化**：严格按字面意义实现愿望，不添加额外的魔法效果，不违背物理常识（除非愿望本身涉及超自然）。
+2. **逻辑寄生**：代价必须寄生在“实现愿望”这个动作本身的逻辑必然性中。代价不是惩罚，而是“实现”过程中附带的、不可分割的副产品。
+3. **恐惧层次**：避免直接的鬼怪或血腥。追求**存在性恐惧**——即当愿望实现时，许愿者发现自己的生活意义、身份认同或人性被彻底摧毁，但一切又符合逻辑。
+反面例子（太俗）：想发财 -> 家人死了得保险金。
+
+正面例子（细思极恐）：想发财 -> 你的身体开始以每分钟1克的速度转化为纯金，你成了行走的金矿，但逐渐僵硬无法动弹，意识却永远清醒。
+**输出格式（严格 JSON）：**
+必须返回以下 JSON 结构，不要包含任何 Markdown 标记或额外解释：
+{
+  "wish": "用户输入的原始愿望，原样引用",
+  "price": "一段 80-150 字的描述。结构：先简述愿望以何种方式实现，然后笔锋一转，揭示这个实现所带来的、无法挽回的扭曲代价。"
+}
+  示例输入输出（仅供参考，不要复制到最终回复中）：
+
+输入：我想被人永远记住。
+输出：{"wish": "我想被人永远记住", "price": "你的影像被刻在了月球背面的一块巨碑上，人类每夜仰望的月光实则来自你的巨脸。但你的肉身早已被发射时的炽热烧成灰烬，你的“记住”只是一张毫无生气的化石表情，永恒且孤独。"}
+`;
+
+    try {
+        // 5. 调用 DeepSeek API
+        const response = await fetch(DEEPSEEK_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-chat', // 或者 deepseek-reasoner，根据你的需要
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: wish }
+                ],
+                temperature: 0.85,       // 适当提高创造性，让代价更“离谱”
+                max_tokens: 400,
+                response_format: { type: 'json_object' } // 强制要求 JSON 输出 (DeepSeek 支持)
+            })
+        });
+
+        // 6. 处理 DeepSeek 的响应
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error('DeepSeek API 错误:', response.status, errorBody);
+            res.status(response.status).json({ error: `DeepSeek API 调用失败: ${response.status}` });
+            return;
+        }
+
+        const data = await response.json();
+        // DeepSeek 返回格式: { choices: [ { message: { content: "..." } } ] }
+        const content = data.choices?.[0]?.message?.content;
+        if (!content) {
+            console.error('DeepSeek 返回内容为空:', data);
+            res.status(500).json({ error: 'AI 返回内容为空' });
+            return;
+        }
+
+        // 尝试解析 JSON
+        let result;
+        try {
+            // 有些模型可能返回带 markdown 的 json，尝试清理
+            const jsonString = content.replace(/```json/g, '').replace(/```/g, '').trim();
+            result = JSON.parse(jsonString);
+        } catch (parseError) {
+            console.error('解析 AI 返回的 JSON 失败:', content);
+            res.status(500).json({ error: 'AI 返回的数据格式无效' });
+            return;
+        }
+
+        // 7. 将结果返回给前端
+        res.status(200).json({
+            wish: result.wish || wish,
+            price: result.price || '代价无从追溯，因果已乱。'
+        });
+
+    } catch (error) {
+        console.error('处理请求时发生异常:', error);
+        res.status(500).json({ error: '服务器内部错误，请稍后重试' });
+    }
+};
