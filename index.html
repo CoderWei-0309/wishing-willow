@@ -1,52 +1,552 @@
-项目目标： 创建一个名为“许愿柳（The Wishing Willow）”的暗黑风格单页Web应用，致敬电影《痴迷》的诡异美学。
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>许愿柳 · 扭曲契约</title>
+    <!-- 引入衬线字体 Cinzel -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ---------- 全局重置与暗黑基调 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-技术栈要求：
+        body {
+            background: #0a0a0f;
+            color: #c9c0b0;
+            font-family: 'Cinzel', 'Times New Roman', serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
 
-前端：纯原生 HTML + CSS + JavaScript（无需框架）。
+        /* 动态粒子烟雾背景 (Canvas将覆盖于此) */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-后端：你已有自己的 API 接口（请预留 /api/make-wish 的 POST 请求路径，请求体为 { "wish": "用户愿望" }，响应需符合下文 JSON 格式）。为方便调试，请在代码注释中注明后端接口地址替换位置。
+        /* 暗红月亮 */
+        .moon {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, #4a1a1a, #2a0a0a);
+            border-radius: 50%;
+            box-shadow: 0 0 80px rgba(139, 0, 0, 0.6);
+            z-index: 1;
+            transition: box-shadow 0.5s;
+        }
+        .moon.glow {
+            box-shadow: 0 0 150px rgba(139, 0, 0, 1);
+        }
 
-视觉与风格（暗黑哥特风）：
+        /* ---------- 主容器 ---------- */
+        .container {
+            position: relative;
+            z-index: 2;
+            width: 90%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+        }
 
-色调：深空黑（#0a0a0f）、暗夜蓝黑（#0d1321）、血色高光（#8b0000）、暗金（#b8860b）、枯木棕（#3e2723）。
+        /* 标题 */
+        h1 {
+            font-weight: 900;
+            font-size: 2.4rem;
+            letter-spacing: 8px;
+            color: #b8860b;
+            text-shadow: 0 0 20px rgba(184, 134, 11, 0.3);
+            margin-bottom: 10px;
+            border-bottom: 1px solid #3e2723;
+            padding-bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+        .sub {
+            font-size: 0.8rem;
+            color: #5a4a3a;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+        }
 
-背景：动态粒子烟雾效果（使用 Canvas 或 CSS 动画实现飘渺的薄雾），一轮朦胧的暗红色月亮悬于左上角。
+        /* ---------- 柳树区域 ---------- */
+        .willow-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            min-height: 320px;
+            margin-bottom: 20px;
+            position: relative;
+        }
 
-核心元素——许愿柳：使用 CSS 或 SVG 绘制一棵形态扭曲、枝条下垂的枯柳。树干需有逼真的纹理感（可用 CSS 阴影与渐变模拟）。
+        /* SVG柳树 */
+        #willow-svg {
+            width: 280px;
+            height: 320px;
+            filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.8));
+            transition: transform 0.1s;
+        }
+        /* 摇曳动画 */
+        .sway {
+            animation: swayAnim 4s ease-in-out infinite alternate;
+        }
+        @keyframes swayAnim {
+            0% { transform: rotate(-1deg); }
+            100% { transform: rotate(1deg); }
+        }
+        /* 折断震动 */
+        .shake {
+            animation: shakeAnim 0.3s ease-in-out 3;
+        }
+        @keyframes shakeAnim {
+            0%, 100% { transform: rotate(0deg) translateX(0); }
+            25% { transform: rotate(3deg) translateX(-8px); }
+            75% { transform: rotate(-3deg) translateX(8px); }
+        }
+        /* 枝条断裂隐藏 */
+        .branch-break {
+            transition: all 0.8s ease;
+        }
+        .branch-break.broken {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            opacity: 0;
+        }
 
-排版：使用衬线字体（如 Cinzel 或 Times New Roman），文字带有微弱的暗影发光。
+        /* 碎片粒子容器 */
+        .particle-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #8b0000;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #b8860b;
+            opacity: 0;
+        }
 
-核心交互逻辑（方案A - 点击折断）：
+        /* ---------- 交互区 (输入+按钮) ---------- */
+        .interact-area {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin: 10px 0 30px;
+        }
 
-页面中央为许愿柳，下方为输入框（Placeholder：在此写下你渴望的...）和“掰断它”按钮。
+        .input-wrapper {
+            position: relative;
+        }
+        #wish-input {
+            width: 100%;
+            padding: 18px 24px;
+            background: rgba(20, 15, 12, 0.9);
+            border: 1px solid #3e2723;
+            border-radius: 4px;
+            color: #e6dcc8;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            letter-spacing: 1px;
+        }
+        #wish-input::placeholder {
+            color: #4a3a2a;
+            font-style: italic;
+        }
+        #wish-input:focus {
+            border-color: #b8860b;
+            box-shadow: 0 0 30px rgba(184, 134, 11, 0.15);
+        }
 
-用户输入愿望并点击按钮：
+        #submit-btn {
+            padding: 16px 30px;
+            background: transparent;
+            border: 2px solid #8b0000;
+            color: #c9c0b0;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+            letter-spacing: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+            text-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        #submit-btn:hover:not(:disabled) {
+            background: #8b0000;
+            color: #0a0a0f;
+            box-shadow: 0 0 40px rgba(139, 0, 0, 0.6);
+            border-color: #b8860b;
+        }
+        #submit-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #3a2a1a;
+            filter: grayscale(0.8);
+        }
+        .loading-text {
+            font-size: 0.9rem;
+            color: #8b0000;
+            letter-spacing: 4px;
+            min-height: 30px;
+            text-align: center;
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
 
-按钮立即禁用，防止重复提交。
+        /* ---------- 代价契约展示区 (双栏) ---------- */
+        .contract-area {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
+            display: none; /* 默认隐藏，收到数据后显示 */
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            border: 1px solid #b8860b;
+            background: rgba(20, 15, 10, 0.85);
+            padding: 25px 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(184, 134, 11, 0.05);
+            backdrop-filter: blur(4px);
+        }
+        .contract-area.show {
+            display: grid;
+        }
 
-折断动画（关键）：柳树的一根主要枝条触发“折断”特效——枝条产生裂纹，树干震动，伴随一段 CSS 碎片粒子飞溅的效果，持续约 1.5秒。折断后柳枝缓缓垂落。
+        .contract-col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .contract-col .label {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: #b8860b;
+            border-bottom: 1px solid #3e2723;
+            padding-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .contract-col .content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #e6dcc8;
+            min-height: 80px;
+            word-break: break-word;
+        }
+        /* 打字机光标 */
+        .typewriter-cursor::after {
+            content: "|";
+            animation: blink 0.8s step-end infinite;
+            color: #8b0000;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
 
-动画播放期间，页面显示“交易正在缔结...”的加载字样。
+        .contract-footer {
+            grid-column: 1 / -1;
+            text-align: right;
+            font-size: 0.6rem;
+            color: #5a4a3a;
+            letter-spacing: 2px;
+            border-top: 1px solid #2a1a1a;
+            padding-top: 12px;
+            margin-top: 6px;
+            font-style: italic;
+        }
 
-动画结束后，前端调用后端 API 发送愿望。
+        /* ---------- 响应式 ---------- */
+        @media (max-width: 700px) {
+            h1 { font-size: 1.6rem; }
+            .contract-area {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .moon {
+                width: 70px;
+                height: 70px;
+                top: 15px;
+                left: 15px;
+            }
+            #willow-svg {
+                width: 200px;
+                height: 240px;
+            }
+            .contract-col .content {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
 
-收到 API 返回的 JSON 数据后，渲染 “代价契约”展示区。
+    <!-- 背景粒子画布 -->
+    <canvas id="bg-canvas"></canvas>
 
-“代价契约”展示区布局（方案B）：
-位于柳树下方或右侧，采用并排双栏设计（暗金边框，羊皮纸纹理背景）：
+    <!-- 暗红月亮 -->
+    <div class="moon" id="moon"></div>
 
-左栏：标题“【许愿原文】”，内容显示用户输入的愿望。
+    <!-- 主容器 -->
+    <div class="container">
+        <h1>✦ 许愿柳 ✦</h1>
+        <div class="sub">— 愿望即代价 —</div>
 
-右栏：标题“【扭曲的代价】”，内容显示 API 返回的 price 字段（带有打字机逐字出现的效果，增强诡异感）。
+        <!-- 柳树 + 粒子容器 -->
+        <div class="willow-area">
+            <svg id="willow-svg" class="sway" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+                <!-- 树干 -->
+                <path d="M150 320 Q140 250 145 200 Q148 160 150 140" stroke="#3e2723" stroke-width="24" fill="none" stroke-linecap="round"/>
+                <path d="M150 320 Q160 250 155 200 Q152 160 150 140" stroke="#2a1a12" stroke-width="14" fill="none" stroke-linecap="round"/>
+                <!-- 主要枝条（要被折断的） -->
+                <g id="main-branch">
+                    <path d="M150 150 Q120 120 90 100 Q60 80 30 70" stroke="#4a3a2a" stroke-width="8" fill="none" stroke-linecap="round"/>
+                    <!-- 小枝条 -->
+                    <path d="M120 120 Q100 140 80 160" stroke="#4a3a2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <path d="M90 100 Q70 90 50 110" stroke="#4a3a2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+                </g>
+                <!-- 其他枝条 -->
+                <path d="M150 150 Q180 110 210 100 Q240 90 270 95" stroke="#4a3a2a" stroke-width="6" fill="none" stroke-linecap="round"/>
+                <path d="M180 110 Q200 130 220 150" stroke="#4a3a2a" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M150 160 Q130 180 100 190" stroke="#4a3a2a" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <path d="M150 170 Q180 190 210 200" stroke="#4a3a2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <!-- 柳条垂丝 -->
+                <path d="M30 70 Q20 100 10 130" stroke="#2a3a1a" stroke-width="2" fill="none" opacity="0.6"/>
+                <path d="M50 110 Q40 140 30 170" stroke="#2a3a1a" stroke-width="2" fill="none" opacity="0.6"/>
+                <path d="M270 95 Q280 130 290 160" stroke="#2a3a1a" stroke-width="2" fill="none" opacity="0.6"/>
+                <path d="M220 150 Q230 180 240 210" stroke="#2a3a1a" stroke-width="2" fill="none" opacity="0.6"/>
+            </svg>
+            <div class="particle-container" id="particle-container"></div>
+        </div>
 
-契约底部添加一行小字：“愿望已兑现，代价已刻入因果”。
+        <!-- 交互区 -->
+        <div class="interact-area">
+            <div class="input-wrapper">
+                <input type="text" id="wish-input" placeholder="在此写下你渴望的..." maxlength="200">
+            </div>
+            <button id="submit-btn">掰断它</button>
+            <div class="loading-text" id="loading-text"></div>
+        </div>
 
-动效要求：
+        <!-- 代价契约展示区 -->
+        <div class="contract-area" id="contract-area">
+            <div class="contract-col">
+                <div class="label">【许愿原文】</div>
+                <div class="content" id="wish-display"></div>
+            </div>
+            <div class="contract-col">
+                <div class="label">【扭曲的代价】</div>
+                <div class="content" id="price-display"></div>
+            </div>
+            <div class="contract-footer">* 愿望已兑现，代价已刻入因果 *</div>
+        </div>
+    </div>
 
-页面加载时柳树有轻微摇曳动画（sway 关键帧）。
+    <script>
+        // ---------- 1. 背景粒子烟雾 ----------
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles = [];
 
-代价文字逐字出现时，背景的暗红月亮闪烁一下。
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-鼠标悬停按钮时有暗金火焰光晕。
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.speedY = (Math.random() - 0.5) * 0.2 - 0.1;
+                this.opacity = Math.random() * 0.3 + 0.05;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > width) this.speedX *= -1;
+                if (this.y < 0 || this.y > height) this.speedY *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(100, 80, 60, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
 
-响应式： 适配 PC 和移动端。
+        for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+        function animateBg() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // ---------- 2. DOM 引用 ----------
+        const willow = document.getElementById('willow-svg');
+        const mainBranch = document.getElementById('main-branch');
+        const submitBtn = document.getElementById('submit-btn');
+        const wishInput = document.getElementById('wish-input');
+        const loadingText = document.getElementById('loading-text');
+        const contractArea = document.getElementById('contract-area');
+        const wishDisplay = document.getElementById('wish-display');
+        const priceDisplay = document.getElementById('price-display');
+        const moon = document.getElementById('moon');
+        const particleContainer = document.getElementById('particle-container');
+
+        // ---------- 3. 辅助函数：生成碎片粒子 ----------
+        function createParticles() {
+            const rect = willow.getBoundingClientRect();
+            const cx = rect.left + rect.width * 0.5;
+            const cy = rect.top + rect.height * 0.3;
+            for (let i = 0; i < 30; i++) {
+                const el = document.createElement('div');
+                el.className = 'particle';
+                const angle = Math.random() * Math.PI * 2;
+                const dist = 60 + Math.random() * 120;
+                const x = cx + Math.cos(angle) * dist - 3;
+                const y = cy + Math.sin(angle) * dist - 3;
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+                el.style.width = (4 + Math.random() * 8) + 'px';
+                el.style.height = el.style.width;
+                el.style.background = Math.random() > 0.5 ? '#8b0000' : '#b8860b';
+                el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                el.style.opacity = '1';
+                el.style.transition = 'all 0.9s ease-out';
+                document.body.appendChild(el);
+                requestAnimationFrame(() => {
+                    el.style.transform = `translate(${(Math.random()-0.5)*200}px, ${(Math.random()-0.5)*200}px) scale(0.1)`;
+                    el.style.opacity = '0';
+                });
+                setTimeout(() => el.remove(), 1000);
+            }
+        }
+
+        // ---------- 4. 核心交互 ----------
+        async function handleMakeWish() {
+            const wish = wishInput.value.trim();
+            if (!wish) {
+                loadingText.textContent = '✧ 请先写下你的愿望... ✧';
+                return;
+            }
+
+            // 禁用
+            submitBtn.disabled = true;
+            loadingText.textContent = '✦ 交易正在缔结... ✦';
+            contractArea.classList.remove('show');
+
+            // 播放折断动画
+            willow.classList.remove('sway');
+            willow.classList.add('shake');
+            mainBranch.classList.add('broken');
+            createParticles();
+            moon.classList.add('glow');
+
+            // 等待动画结束 (1.5s)
+            await new Promise(r => setTimeout(r, 1500));
+            willow.classList.remove('shake');
+            willow.classList.add('sway');
+            moon.classList.remove('glow');
+
+            try {
+                // 调用后端API（Vercel Serverless Function）
+                const response = await fetch('/api/make-wish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wish: wish })
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`API错误 (${response.status}): ${errText}`);
+                }
+
+                const data = await response.json();
+                // 预期返回格式：{ wish: "...", price: "..." }
+                if (!data.wish || !data.price) {
+                    throw new Error('返回数据格式异常');
+                }
+
+                // 渲染契约
+                wishDisplay.textContent = data.wish;
+                priceDisplay.textContent = '';
+                contractArea.classList.add('show');
+
+                // 打字机效果逐字显示代价
+                const text = data.price;
+                let index = 0;
+                const typeInterval = setInterval(() => {
+                    if (index < text.length) {
+                        priceDisplay.textContent += text.charAt(index);
+                        index++;
+                        // 滚动到底部
+                        contractArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        clearInterval(typeInterval);
+                        loadingText.textContent = '✦ 契约已立 ✦';
+                        submitBtn.disabled = false;
+                    }
+                }, 30);
+
+            } catch (error) {
+                console.error('请求失败:', error);
+                loadingText.textContent = '✧ 因果中断，请重试 ✧';
+                submitBtn.disabled = false;
+                contractArea.classList.remove('show');
+            }
+        }
+
+        // 点击按钮
+        submitBtn.addEventListener('click', handleMakeWish);
+        // 回车键
+        wishInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleMakeWish();
+            }
+        });
+
+        // 初始化加载提示
+        loadingText.textContent = '✧ 许下愿望，掰断因果 ✧';
+    </script>
+</body>
+</html>
